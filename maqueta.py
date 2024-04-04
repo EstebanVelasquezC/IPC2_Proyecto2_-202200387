@@ -1,3 +1,5 @@
+import graphviz
+
 class Maqueta:
     def __init__(self, nombre, filas, columnas, entrada, objetivos, estructura):
         self.nombre = nombre
@@ -7,14 +9,26 @@ class Maqueta:
         self.objetivos = objetivos
         self.estructura = estructura
 
-    def __str__(self):
-        return f"Maqueta: {self.nombre} - Filas: {self.filas}, Columnas: {self.columnas}, Objetivos: {len(self.objetivos)}"
+    def generar_grafo_maqueta(self):
+        grafo = graphviz.Digraph(comment=self.nombre)
 
-    def obtener_estructura(self):
-        matriz = []
-        for i in range(self.filas):
-            fila = []
-            for j in range(self.columnas):
-                fila.append(self.estructura[i * self.columnas + j])
-            matriz.append(fila)
-        return matriz
+        for fila in range(self.filas):
+            with grafo.subgraph() as sub:
+                for columna in range(self.columnas):
+                    nodo = f"{fila}-{columna}"
+                    # Definir forma y color de acuerdo a la estructura de la maqueta
+                    if self.estructura[fila][columna] == "*":
+                        sub.node(nodo, shape="square", style="filled", fillcolor="black")
+                    elif self.estructura[fila][columna] == "-":
+                        sub.node(nodo, shape="square", style="filled", fillcolor="white")
+                    else:
+                        sub.node(nodo, shape="point")
+                    # Definir nodo de entrada con color específico
+                    if (fila, columna) == self.entrada:
+                        sub.node(nodo, shape="square", style="filled", fillcolor="#98FB98")
+
+        return grafo
+
+    def mostrar_configuracion(self):
+        grafo = self.generar_grafo_maqueta()
+        return grafo.render(filename=f"maqueta_{self.nombre}", format="png", cleanup=True)
