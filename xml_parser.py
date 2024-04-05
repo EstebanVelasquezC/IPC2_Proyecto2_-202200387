@@ -41,4 +41,3 @@ def cargar_archivo_xml(filename):
         print("Error al cargar el archivo XML:", e)
         return None
 
-

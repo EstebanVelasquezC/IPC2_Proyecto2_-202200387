@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 import webbrowser
+import graphviz
 from xml_parser import cargar_archivo_xml
 
 class InterfazGrafica(tk.Tk):
@@ -48,8 +49,8 @@ class InterfazGrafica(tk.Tk):
                 # Muestra el nombre de cada maqueta
                 print(f"Nombre de la maqueta: {maqueta['nombre']}")
                 # Muestra otros detalles de la maqueta, como las filas, columnas, entrada y objetivos
-                print(f"Filas: {maqueta['columnas']}")
-                print(f"Columnas: {maqueta['filas']}")
+                print(f"Filas: {maqueta['columnas']}")  # Cambiar 'columnas' por 'filas'
+                print(f"Columnas: {maqueta['filas']}")  # Cambiar 'filas' por 'columnas'
                 print(f"Entrada: {maqueta['entrada']}")
                 print("Objetivos:")
                 for objetivo in maqueta['objetivos']:
@@ -58,8 +59,34 @@ class InterfazGrafica(tk.Tk):
                 print("Estructura:")
                 print(maqueta['estructura'])
                 print("=" * 30)
+                # Mostrar representación gráfica de la maqueta
+                self.mostrar_maqueta(maqueta)
         else:
             print("No se han cargado maquetas")
+    
+    def mostrar_maqueta(self, maqueta):
+        # Generar la representación en lenguaje DOT de la maqueta
+        dot = graphviz.Digraph(graph_attr={'rankdir': 'LR'})
+        for i in range(maqueta['columnas']):  # Cambiar 'columnas' por 'filas'
+            with dot.subgraph() as s:
+                s.attr(rank='same')
+                for j in range(maqueta['filas']):  # Cambiar 'filas' por 'columnas'
+                    node_id = f"{i}_{j}"
+                    if maqueta['estructura'][j * maqueta['columnas'] + i] == '*':  # Intercambiar 'i' y 'j'
+                        s.node(node_id, style="filled", fillcolor="black", shape="rectangle", width="0.3", height="0.3", fontsize="10")
+                    else:
+                        s.node(node_id, style="filled", fillcolor="white", shape="rectangle", width="0.3", height="0.3", fontsize="10")
+                    if j > 0:
+                        dot.edge(f"{i}_{j - 1}", node_id, style="invis")
+                    if i > 0 and maqueta['estructura'][j * maqueta['columnas'] + (i - 1)] != '*':  # Intercambiar 'i' y 'j'
+                        dot.edge(f"{i - 1}_{j}", node_id, style="invis")
+                    for objetivo in maqueta['objetivos']:
+                        if objetivo[1] == j and objetivo[2] == i:  # Intercambiar 'objetivo[1]' y 'objetivo[2]'
+                            dot.node(node_id, label=objetivo[0], shape="rectangle", color="blue", fontsize="10", style="filled", fillcolor="blue")
+        dot.node("entrada", style="filled", fillcolor="#98FB98", shape="rectangle", width="0.3", height="0.3", fontsize="10")
+        dot.edge("entrada", f"{maqueta['entrada'][1]}_{maqueta['entrada'][0]}", color="green")  # Intercambiar 'entrada[0]' y 'entrada[1]'
+        # Mostrar la maqueta
+        dot.render('maqueta', format='png', view=True)
     
     def resolucion_maquetas(self):
         # Lógica para resolver las maquetas
